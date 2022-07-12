@@ -2,6 +2,7 @@ import requests
 import os
 from bs4 import BeautifulSoup
 
+
 def download_xls(urls_dict: dict[str, list[str]]) -> None:
     """
     Download xls files from  the urls_dicts into the current directory. The files are 
@@ -44,7 +45,6 @@ def get_links(url: str) -> dict[str, list[str]]:
                 links[next(reversed(links.keys()))].append(base_url + link["href"])
 
     return links
-
 
 if __name__ == "__main__":
     urls = [
