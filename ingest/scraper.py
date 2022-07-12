@@ -2,7 +2,11 @@ import requests
 import os
 from bs4 import BeautifulSoup
 
-
+def to_lowercase(word):
+    result = word.split(" ")
+    result = [item.lower() for item in result]
+    return " ".join(result).replace(" ", "-")
+    
 def download_xls(urls_dict: dict[str, list[str]]) -> None:
     """
     Download xls files from  the urls_dicts into the current directory. The files are 
@@ -10,6 +14,7 @@ def download_xls(urls_dict: dict[str, list[str]]) -> None:
     and urls_dict value is a list that contians links to download dataset related to the group titile. 
     """ 
     for key, values in urls_dict.items():
+        key = to_lowercase(key)        
         os.mkdir(key)
         os.chdir(key)
         for link in values:
@@ -55,6 +60,11 @@ if __name__ == "__main__":
         "https://www.ers.usda.gov/data-products/food-price-outlook/",
         "https://www.ers.usda.gov/data-products/food-expenditure-series/"
     ]
-    for url in urls:
-        links = get_links(url)
-        download_xls(links)
+    # for url in urls:
+    #     links = get_links(url)
+    #     download_xls(links)
+    url = urls[-1]
+    links = get_links(url)
+    download_xls(links)
+
+
