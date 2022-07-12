@@ -1,32 +1,31 @@
 import requests
 import os
+import boto3
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 
 def to_lowercase(word):
     result = word.split(" ")
     result = [item.lower() for item in result]
     return " ".join(result).replace(" ", "-")
+
+def upload_to_s3(urls_dict: dict[str, list[str]], bucket_name: str) -> None:
+
+    client = boto3.client('s3', 
+                       aws_access_key_id=os.getenv("ACCESS_KEY_ID"),
+                       aws_secret_access_key=os.getenv("SECRET_ACCESS_KEY"))
+    client.create_bucket(Bucket="s3-bucket-raw-usda-ers")
     
-def download_xls(urls_dict: dict[str, list[str]]) -> None:
-    """
-    Download xls files from  the urls_dicts into the current directory. The files are 
-    downloaded into thier corresponding subdirectory. urls_dict key is the group title of the dataset
-    and urls_dict value is a list that contians links to download dataset related to the group titile. 
-    """ 
     for key, values in urls_dict.items():
         key = to_lowercase(key)        
-        os.mkdir(key)
-        os.chdir(key)
         for link in values:
             req = requests.get(link)
             filename = req.url[link.rfind("/") + 1: link.rfind("?")]
-            with open(filename, "wb") as f:
-                for chunk in req.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
-
-        parent_path = os.path.dirname(os.getcwd())
-        os.chdir(parent_path)
+            client.put_object( 
+                Bucket= bucket_name,
+                Body= req.content,
+                Key=  key + "/" + filename
+            )    
 
 def get_links(url: str) -> dict[str, list[str]]: 
     """
@@ -60,11 +59,12 @@ if __name__ == "__main__":
         "https://www.ers.usda.gov/data-products/food-price-outlook/",
         "https://www.ers.usda.gov/data-products/food-expenditure-series/"
     ]
+    load_dotenv()
     # for url in urls:
     #     links = get_links(url)
     #     download_xls(links)
     url = urls[-1]
     links = get_links(url)
-    download_xls(links)
-
-
+    # download_xls(links)
+    upload_to_s3(links, "s3-bucket-raw-usda-ers")
+    
