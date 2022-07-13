@@ -1,4 +1,6 @@
 import requests
+import pickle
+import pandas as pd
 import os
 import boto3
 import zipfile
@@ -56,31 +58,22 @@ def get_links(url: str) -> dict[str, list[str]]:
 
     return links
 
-def kaggle_upload():
+def kaggle_upload(bucket_name: str) -> None:
     # api_commands = ["kaggle datasets download -d amanarora/obesity-among-adults-by-country-19752016",
     #                 "kaggle datasets download -d annedunn/obesity-and-gdp-rates-from-50-states-in-20142017",
     #                 "kaggle datasets download -d spittman1248/cdc-data-nutrition-physical-activity-obesity"]
 
     api_commands = ["kaggle datasets download -d amanarora/obesity-among-adults-by-country-19752016"]
-    s3 = create_s3_bucket("s3-bucket-raw-kaggle") 
+    s3 = create_s3_bucket(bucket_name) 
     for command in api_commands:
         os.system(command)
         filename = command.split("/")[1]
         with zipfile.ZipFile(filename + ".zip") as zip:
             # filenames = zipfilet()
             zip.extractall()
-            
             for file in os.listdir():
                 if ".csv" in file:
-                    s3.put_object( 
-                        Bucket= "s3-bucket-raw-kaggle",
-                        Body= file,
-                        Key=  "kaggle-data" + "/" + file
-                    )    
-
-
-
-
+                    s3.upload_file(file, bucket_name, "obesity/" + file) 
 
 if __name__ == "__main__":
     urls = [
@@ -99,4 +92,4 @@ if __name__ == "__main__":
     links = get_links(url)
     # download_xls(links)
     # upload_to_s3(links, "s3-bucket-raw-usda-ers")
-    kaggle_upload()    
+    kaggle_upload("s3-bucket-raw-kaggle")    
