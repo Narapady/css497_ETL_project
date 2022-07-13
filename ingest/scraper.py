@@ -83,9 +83,11 @@ if __name__ == "__main__":
                     "kaggle datasets download -d annedunn/obesity-and-gdp-rates-from-50-states-in-20142017",
                     "kaggle datasets download -d spittman1248/cdc-data-nutrition-physical-activity-obesity"]
     load_dotenv()
-    for url in urls:
-        links = get_links(url)
-        upload_ers_to_s3(links,"s3-bucket-raw-usda-ers" )
+    # for url in urls:
+    #     links = get_links(url)
+    #     upload_ers_to_s3(links,"s3-bucket-raw-usda-ers" )
 
-    for api_command in api_commands:
-        upload_kaggle_to_s3("s3-bucket-raw-kaggle", api_command)    
+    # for api_command in api_commands:
+    #     upload_kaggle_to_s3("s3-bucket-raw-kaggle", api_command)    
+    url = "https://www.ers.usda.gov/data-products/commodity-consumption-by-population-characteristics/"
+    print(get_links(url))
