@@ -1,6 +1,4 @@
 import requests
-import pickle
-import pandas as pd
 import os
 import boto3
 import zipfile
@@ -20,7 +18,7 @@ def create_s3_bucket(bucket_name: str):
     return client
 
 
-def upload_to_s3(urls_dict: dict[str, list[str]], bucket_name: str) -> None:
+def upload_ers_to_s3(urls_dict: dict[str, list[str]], bucket_name: str) -> None:
 
     s3 = create_s3_bucket(bucket_name=bucket_name) 
 
@@ -58,22 +56,20 @@ def get_links(url: str) -> dict[str, list[str]]:
 
     return links
 
-def kaggle_upload(bucket_name: str) -> None:
-    # api_commands = ["kaggle datasets download -d amanarora/obesity-among-adults-by-country-19752016",
-    #                 "kaggle datasets download -d annedunn/obesity-and-gdp-rates-from-50-states-in-20142017",
-    #                 "kaggle datasets download -d spittman1248/cdc-data-nutrition-physical-activity-obesity"]
+def upload_kaggle_to_s3(bucket_name: str, api_commands: list[str]) -> None:
 
-    api_commands = ["kaggle datasets download -d amanarora/obesity-among-adults-by-country-19752016"]
     s3 = create_s3_bucket(bucket_name) 
     for command in api_commands:
         os.system(command)
         filename = command.split("/")[1]
         with zipfile.ZipFile(filename + ".zip") as zip:
-            # filenames = zipfilet()
             zip.extractall()
             for file in os.listdir():
                 if ".csv" in file:
-                    s3.upload_file(file, bucket_name, "obesity/" + file) 
+                    s3.upload_file(file, bucket_name, "obesity/" + file)
+            
+        os.system("rm *.zip *.csv")
+
 
 if __name__ == "__main__":
     urls = [
@@ -84,6 +80,9 @@ if __name__ == "__main__":
         "https://www.ers.usda.gov/data-products/food-price-outlook/",
         "https://www.ers.usda.gov/data-products/food-expenditure-series/"
     ]
+    api_commands = ["kaggle datasets download -d amanarora/obesity-among-adults-by-country-19752016",
+                    "kaggle datasets download -d annedunn/obesity-and-gdp-rates-from-50-states-in-20142017",
+                    "kaggle datasets download -d spittman1248/cdc-data-nutrition-physical-activity-obesity"]
     load_dotenv()
     # for url in urls:
     #     links = get_links(url)
@@ -92,4 +91,4 @@ if __name__ == "__main__":
     links = get_links(url)
     # download_xls(links)
     # upload_to_s3(links, "s3-bucket-raw-usda-ers")
-    kaggle_upload("s3-bucket-raw-kaggle")    
+    upload_kaggle_to_s3("s3-bucket-raw-kaggle", api_commands)    
