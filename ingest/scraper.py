@@ -56,19 +56,18 @@ def get_links(url: str) -> dict[str, list[str]]:
 
     return links
 
-def upload_kaggle_to_s3(bucket_name: str, api_commands: list[str]) -> None:
+def upload_kaggle_to_s3(bucket_name: str, api_command: str) -> None:
 
     s3 = create_s3_bucket(bucket_name) 
-    for command in api_commands:
-        os.system(command)
-        filename = command.split("/")[1]
-        with zipfile.ZipFile(filename + ".zip") as zip:
-            zip.extractall()
-            for file in os.listdir():
-                if ".csv" in file:
-                    s3.upload_file(file, bucket_name, "obesity/" + file)
-            
-        os.system("rm *.zip *.csv")
+    os.system(api_command)
+    filename = api_command.split("/")[1]
+    with zipfile.ZipFile(filename + ".zip") as zip:
+        zip.extractall()
+        for file in os.listdir():
+            if ".csv" in file:
+                s3.upload_file(file, bucket_name, "obesity/" + file)
+        
+    os.system("rm *.zip *.csv")
 
 
 if __name__ == "__main__":
@@ -84,11 +83,9 @@ if __name__ == "__main__":
                     "kaggle datasets download -d annedunn/obesity-and-gdp-rates-from-50-states-in-20142017",
                     "kaggle datasets download -d spittman1248/cdc-data-nutrition-physical-activity-obesity"]
     load_dotenv()
-    # for url in urls:
-    #     links = get_links(url)
-    #     download_xls(links)
-    url = urls[-1]
-    links = get_links(url)
-    # download_xls(links)
-    # upload_to_s3(links, "s3-bucket-raw-usda-ers")
-    upload_kaggle_to_s3("s3-bucket-raw-kaggle", api_commands)    
+    for url in urls:
+        links = get_links(url)
+        upload_ers_to_s3(links,"s3-bucket-raw-usda-ers" )
+
+    for api_command in api_commands:
+        upload_kaggle_to_s3("s3-bucket-raw-kaggle", api_command)    
