@@ -1,16 +1,23 @@
 import requests
 from bs4 import BeautifulSoup
 
-
+"""
+Utility module for ingestion 
+"""
 def to_lowercase(word: str) -> str:
+    """
+    Convert title to all lowercase delimited by "-"
+    """
     result = word.split(" ")
     result = [item.lower() for item in result]
     return " ".join(result).replace(" ", "-")
 
 def get_links(url: str) -> dict[str, list[str]]: 
     """
-    Fetch the download links and group titles for each dataset. returns a dictionary in form of
-    {"group title": list of download links corresponding to the group title}
+    Fetch the download links and group titles for each dataset os usda.
+    returns a dictionary in form of {"group title": list of download links 
+    corresponding to the group title}. This is used as helper function when
+    ingeting data from usda to S3
     """
     base_url = url[:url.find("v") + 1]
     req = requests.get(url)
