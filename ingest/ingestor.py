@@ -4,6 +4,7 @@ import boto3
 import zipfile
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from typing import Optional
 
 def to_lowercase(word: str) -> str:
     result = word.split(" ")
@@ -34,7 +35,7 @@ def get_links(url: str) -> dict[str, list[str]]:
     return links
 
 class S3AWS:
-    def __init__(self, access_key_id, secret_access_key):
+    def __init__(self, access_key_id: Optional[str], secret_access_key: Optional[str]):
         self.access_key_id = access_key_id
         self.secret_access_key = secret_access_key
         self.bucket_list = []
