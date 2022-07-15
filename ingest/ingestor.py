@@ -60,9 +60,8 @@ ingestStrategy = Callable[[list[str], str, S3AWS], None]
 class Ingestor:
     """
     Ingestor class is repsonsible for ingesting data from source system with
-    instance method ingest_data() to asw object stroage s3. The instantiation take
-    source to ingest data from, aws s3 object, and the name of s3 bucket to store the data.
-
+    instance method ingest() to ingest data from source systems to asw object stroage s3.
+    The instantiation takes s3 object, s3's bucket name to load data to, and list of source links/api commands
     """
     s3: S3AWS
     bucket_name: str
