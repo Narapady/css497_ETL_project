@@ -14,10 +14,10 @@ def to_lowercase(word: str) -> str:
 
 def get_links(url: str) -> dict[str, list[str]]: 
     """
-    Fetch the download links and group titles for each dataset os usda.
+    Fetch the download links and group titles for each dataset from usda.
     returns a dictionary in form of {"group title": list of download links 
     corresponding to the group title}. This is used as helper function when
-    ingeting data from usda to S3
+    ingesting data from usda to S3
     """
     base_url = url[:url.find("v") + 1]
     req = requests.get(url)
