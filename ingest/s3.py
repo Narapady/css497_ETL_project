@@ -32,6 +32,7 @@ class S3AWS:
             return pd.read_csv(smart_open(path))
         elif type == "xls":
             return pd.read_excel(smart_open(path), sheet)
+
         
     def df_to_s3(self, dataframe: pd.DataFrame, bucket_name: str, key: str, ) -> None:
         s3_bucket = self.create_bucket(bucket_name)
