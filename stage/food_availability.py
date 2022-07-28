@@ -4,7 +4,7 @@ import numpy as np
 
 def get_paths(dirname: str) -> list[str]:
     all_files = os.listdir(dirname)
-    return [f"{dirname}{filename}" for filename in all_files]
+    return [f"{dirname}/{filename}" for filename in all_files]
 
 def has_numbers(input_str: str) -> bool:
     if input_str.startswith("19") or input_str.startswith("20"):
@@ -14,23 +14,25 @@ def has_numbers(input_str: str) -> bool:
 
 class FoodAvailablity:
 
-    def __init__(self, path: str):
-        self.path = path
-        self.dirname = self.path.split("/")[0]
-        self.new_dir = self.path.split("/")[0].lower().replace(" ", "-") + "-clean"
-
+    def __init__(self, dirname: str):
+        self.dirname = dirname 
+        self.new_dir = self.dirname.lower().replace(" ", "-") + "-clean"
+        os.mkdir(self.new_dir)
+        
     def process_calories(self) -> None:
         """
         Process and clean calories.xls. The resulting dataframes are:
             - totals.csv: average daily per capita total calories from U.S food availability after loss adjusted
             - percents.csv: average daily per capita total calories percentage from U.S food availability after loss adjusted
         """
-        os.mkdir(self.new_dir)
-
+        filename = "calories.xls"
+        path = os.path.join(self.dirname, filename)
+        
         for sheet in range(1,3):
             df = pd.read_excel(path, sheet_name=sheet)
             sheetnames = pd.ExcelFile(path).sheet_names 
             df.columns = df.iloc[0]
+            
             if sheet == 1:
                 last_index = df[df['Year'] == 2017].index[0] + 1
             elif sheet == 2:
@@ -40,12 +42,13 @@ class FoodAvailablity:
             df.reset_index(drop=True, inplace=True)
             index = df.loc[df["Year"] == "2000*"].index[0]
             df.loc[index:index+1,"Year"] = "2000"
-            df.to_csv(f"{self.dirname}/{sheetnames[sheet].lower()}.csv", index=False)
 
-    def process_foodgroups(self, path: str) -> None:
-        # each file
-        path = get_paths(dirname)
-        for path in path_names:
+            df.to_csv(f"{self.new_dir}/{sheetnames[sheet].lower()}.csv", index=False)
+
+    def process_foodgroups(self) -> None:
+        
+        file_paths = get_paths(self.dirname)
+        for path in file_paths:
             if "calories" in path or "serving" in path:
                 continue
             # get sheets to process
@@ -53,7 +56,7 @@ class FoodAvailablity:
             sheet_names = file.sheet_names[1:]
             
             sub_dir = path[path.rfind("/") + 1: path.rfind(".")].lower()
-            dir_path = os.path.join(new_dir, sub_dir)
+            dir_path = os.path.join(self.new_dir, sub_dir)
 
             try:
                 os.mkdir(dir_path)
@@ -74,11 +77,9 @@ class FoodAvailablity:
                 filters = df['Year'].apply(lambda x: has_numbers(str(x)))
                 df = df[filters]               
                 
-                    
-                df.columns = self.change_nan_col(df)
+                df.columns = self.change_nan_cols(df)
                 new_col_names = self.change_col_names(df)
                 df = df.rename(columns=new_col_names)
-                    
                 final_cols = ["year", "original weight", "edible weight", "total percent loss", "loss lbs/year", "loss g/day", "available calories/day"]
                 
                 # total grains has no edible weight column 
@@ -88,7 +89,7 @@ class FoodAvailablity:
                 print(f"{dir_path}/{filename}.csv")
                 df.to_csv(f"{dir_path}/{filename}.csv", index=False)         
     
-    def change_nan_col(self, df: pd.DataFrame) -> list[str]:
+    def change_nan_cols(self, df: pd.DataFrame) -> list[str]:
         cols = list(df.columns)
         indx = [i for i, col in enumerate(cols) if col is np.nan]
 
@@ -126,9 +127,12 @@ class FoodAvailablity:
             
         }
         
-        return new_col_names   
+        return new_col_names
 
-path = "Loss-Adjusted Food Availability/calories.xls"
-food = FoodAvailablity()
+if __name__ == "__main__":
 
-food.process_calories(path)
+    directory_name = "Loss-Adjusted Food Availability"
+    food = FoodAvailablity(directory_name)
+
+    food.process_calories()
+    food.process_foodgroups()
