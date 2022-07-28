@@ -18,6 +18,10 @@ class FoodAvailablity:
         self.dirname = dirname 
         self.new_dir = self.dirname.lower().replace(" ", "-") + "-clean"
         os.mkdir(self.new_dir)
+
+    def process_food_availability(self) -> None:
+        self.process_calories()
+        self.process_foodgroups()
         
     def process_calories(self) -> None:
         """
@@ -46,6 +50,19 @@ class FoodAvailablity:
             df.to_csv(f"{self.new_dir}/{sheetnames[sheet].lower()}.csv", index=False)
 
     def process_foodgroups(self) -> None:
+        """
+        Process and clean food groups in Loss-Adjusted-Food-Availability.
+        For each food group, the function process each sheet and create new
+        dataframes as separate files in corresponding directory.
+        Food group include:
+            - dairy
+            - fat
+            - fruit
+            - grains
+            - meat
+            - sugar
+            - veggie
+        """
         
         file_paths = get_paths(self.dirname)
         for path in file_paths:
@@ -90,6 +107,9 @@ class FoodAvailablity:
                 df.to_csv(f"{dir_path}/{filename}.csv", index=False)         
     
     def change_nan_cols(self, df: pd.DataFrame) -> list[str]:
+        """
+        Helper function that handle nan columns.
+        """
         cols = list(df.columns)
         indx = [i for i, col in enumerate(cols) if col is np.nan]
 
@@ -107,6 +127,9 @@ class FoodAvailablity:
         return cols
 
     def change_col_names(self, df: pd.DataFrame) -> dict[str, str]:
+        """
+        Helper function that rename columns name of food group availability
+        """
         avail_cal = ""
         primary_weight = ""
         for col in list(df.columns):
@@ -133,6 +156,5 @@ if __name__ == "__main__":
 
     directory_name = "Loss-Adjusted Food Availability"
     food = FoodAvailablity(directory_name)
-
-    food.process_calories()
-    food.process_foodgroups()
+    
+    food.process_food_availability()
