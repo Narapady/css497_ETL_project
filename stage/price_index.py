@@ -39,7 +39,7 @@ class PriceIndex:
             
         return os.path.join(self.dirname,filename)
 
-    def proccess_data(self) -> None:
+    def process_data(self) -> None:
 
         df = pd.read_excel(self.get_path())
         df.columns = df.iloc[0]
@@ -69,5 +69,5 @@ if __name__ == "__main__":
     cpi = PriceIndex(cpi_dir, "consumer")
     ppi = PriceIndex(ppi_dir, "producer")
 
-    cpi.proccess_data()
-    ppi.proccess_data()
+    cpi.process_data()
+    ppi.process_data()

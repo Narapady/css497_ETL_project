@@ -11,7 +11,6 @@ def has_numbers(input_str: str) -> bool:
         return True
     return False
 
-
 class FoodAvailablity:
 
     def __init__(self, dirname: str):
@@ -19,7 +18,7 @@ class FoodAvailablity:
         self.new_dir = self.dirname.lower().replace(" ", "-") + "-clean"
         os.mkdir(self.new_dir)
 
-    def process_food_availability(self) -> None:
+    def process_data(self) -> None:
         self.process_calories()
         self.process_foodgroups()
         
@@ -153,8 +152,6 @@ class FoodAvailablity:
         return new_col_names
 
 if __name__ == "__main__":
-
     directory_name = "Loss-Adjusted Food Availability"
     food = FoodAvailablity(directory_name)
-    
-    food.process_food_availability()
+    food.process_data()
