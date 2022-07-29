@@ -35,8 +35,8 @@ class FastFood:
         df1.to_csv(f"{self.new_dir}/{age_group[0]}-{self.dirname}.csv", index=False) 
         df2.to_csv(f"{self.new_dir}/{age_group[1]}-{self.dirname}.csv", index=False) 
 
-if __name__ == "__main__":
-    dir_names = ["2014", "2015", "2016"]
-    for directiory in dir_names:
-       fastfood = FastFood(directiory)
-       fastfood.process_data()
+# if __name__ == "__main__":
+#     dir_names = ["2014", "2015", "2016"]
+#     for directiory in dir_names:
+#        fastfood = FastFood(directiory)
+#        fastfood.process_data()

@@ -61,13 +61,13 @@ class PriceIndex:
         
         df.to_csv(f"{self.new_dir}/{self.pi_type}-price-index.csv", index=False)
 
-if __name__ == "__main__":
-        
-    cpi_dir = "Consumer Price Index"
-    ppi_dir = "Producer Price Index"
-   
-    cpi = PriceIndex(cpi_dir, "consumer")
-    ppi = PriceIndex(ppi_dir, "producer")
-
-    cpi.process_data()
-    ppi.process_data()
+# if __name__ == "__main__":
+#         
+#     cpi_dir = "Consumer Price Index"
+#     ppi_dir = "Producer Price Index"
+#    
+#     cpi = PriceIndex(cpi_dir, "consumer")
+#     ppi = PriceIndex(ppi_dir, "producer")
+#
+#     cpi.process_data()
+#     ppi.process_data()

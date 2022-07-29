@@ -43,10 +43,10 @@ class FoodExpenditure:
         nominal_df.to_csv(f"{self.new_dir}/nominal-monthly-sale.csv", index=False)
         constant_df.to_csv(f"{self.new_dir}/constant-monthly-sale.csv", index=False)
 
-if __name__ == "__main__":
-    dirname = "Current Food Expenditure Series"
-    food_exp = FoodExpenditure(dirname)
-    food_exp.process_food_expenditure()
-    food_exp.process_monthly_sale()
+# if __name__ == "__main__":
+#     dirname = "Current Food Expenditure Series"
+#     food_exp = FoodExpenditure(dirname)
+#     food_exp.process_food_expenditure()
+#     food_exp.process_monthly_sale()
 
 

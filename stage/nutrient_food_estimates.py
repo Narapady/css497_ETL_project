@@ -56,7 +56,7 @@ class NutrientFoodEstimate:
             
         return os.path.join(self.dirname, filename)
         
-    def proccess(self):
+    def process_data(self):
             
         path = self.get_path()    
         df = pd.read_excel(path)
@@ -93,11 +93,11 @@ class NutrientFoodEstimate:
             df2.to_csv(f"{self.new_dir}/{demo}-{df2_postfix}.csv", index=False)
             
 
-if __name__ == "__main__":
-    dir1 = "Nutrient Intake Estimates"
-    dir2 = "Food Consumption Estimates"
-    nutrient_estimate = NutrientFoodEstimate(dir1)
-    food_estimate = NutrientFoodEstimate(dir2)
-
-    nutrient_estimate.proccess()
-    food_estimate.proccess()
+# if __name__ == "__main__":
+#     dir1 = "Nutrient Intake Estimates"
+#     dir2 = "Food Consumption Estimates"
+#     nutrient_estimate = NutrientFoodEstimate(dir1)
+#     food_estimate = NutrientFoodEstimate(dir2)
+#
+#     nutrient_estimate.process_data()
+#     food_estimate.process_data()

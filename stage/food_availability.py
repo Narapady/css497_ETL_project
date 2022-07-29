@@ -82,7 +82,6 @@ class FoodAvailablity:
             # each sheet
             for name in sheet_names:
                 # read each sheet in the file
-                print(f"- {name}")
                 df = pd.read_excel(path, sheet_name=name)
                 # use title as key 
                 # title is header of each sheet
@@ -102,7 +101,6 @@ class FoodAvailablity:
                 if name == 'Total grains':
                     final_cols.remove("edible weight")
                 df = df[final_cols]
-                print(f"{dir_path}/{filename}.csv")
                 df.to_csv(f"{dir_path}/{filename}.csv", index=False)         
     
     def change_nan_cols(self, df: pd.DataFrame) -> list[str]:
@@ -151,7 +149,7 @@ class FoodAvailablity:
         
         return new_col_names
 
-if __name__ == "__main__":
-    directory_name = "Loss-Adjusted Food Availability"
-    food = FoodAvailablity(directory_name)
-    food.process_data()
+# if __name__ == "__main__":
+#     directory_name = "Loss-Adjusted Food Availability"
+#     food = FoodAvailablity(directory_name)
+#     food.process_data()
