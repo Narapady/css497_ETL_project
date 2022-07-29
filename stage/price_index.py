@@ -41,38 +41,33 @@ class PriceIndex:
 
     def proccess_data(self) -> None:
 
-        path = self.get_path()
-        df = pd.read_excel(path)
+        df = pd.read_excel(self.get_path())
         df.columns = df.iloc[0]
-        if pi_type == "consumer":
+        
+        if self.pi_type == "consumer":
             df = df.iloc[1:27, :list(df.columns).index(2021.0) + 1].dropna(how="all")
             pct_change_2022_path = "./Consumer Price Index/CPIforecast.xlsx"
-        elif pi_type == "producer":
+            
+        elif self.pi_type == "producer":
             df = df.iloc[1:26, :list(df.columns).index(2021.0) + 1].dropna(how="all")
             pct_change_2022_path = "./Producer Price Index/PPIforecast.xlsx"
+            
         cols = [str(year) for year in list(df.columns)]
         cols[1:] = [year[:-2] for year in cols[1:]]
         df.columns = cols
 
-        df.insert(df.shape[1], "2022", pct_change_list_2022(pct_change_2022_path, pi_type))
+        df.insert(df.shape[1], "2022", self.get_2022_pct_change(pct_change_2022_path))
         df.reset_index(drop=True, inplace=True)
         
-        return df 
-
-
-cpi_path = "./Consumer Price Index/historicalcpi.xlsx"
-ppi_path = "./Producer Price Index/historicalppi.xlsx"
-paths = [cpi_path, ppi_path]
-dirname = "price-index-clean"
-os.mkdir(dirname)
-for path in paths:
-    filename = path.split("/")[1].lower().replace(" ", "-") + "-clean"
-    pi_type = filename.split("-")[0]
-    df = price_index_pct_change(path, pi_type)
-    df.to_csv(f"{dirname}/{filename}.csv", index=False)
-
+        df.to_csv(f"{self.new_dir}/{self.pi_type}-price-index.csv", index=False)
 
 if __name__ == "__main__":
         
-    cpi = "Consumer Price Index"
-    ppi = "Producer Price Index"
+    cpi_dir = "Consumer Price Index"
+    ppi_dir = "Producer Price Index"
+   
+    cpi = PriceIndex(cpi_dir, "consumer")
+    ppi = PriceIndex(ppi_dir, "producer")
+
+    cpi.proccess_data()
+    ppi.proccess_data()
