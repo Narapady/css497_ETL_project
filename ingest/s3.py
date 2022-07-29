@@ -22,19 +22,26 @@ class S3AWS:
         client = boto3.client('s3', 
                            aws_access_key_id=self.access_key_id,
                            aws_secret_access_key=self.secret_key_id)
-        client.create_bucket(Bucket=bucket_name)
+        return client.create_bucket(Bucket=bucket_name)
 
-        return client
 
-    def load_df(self, bucket_name: str, key: str, type: str, sheet: int) -> pd.DataFrame:
+    def load_df(self, bucket_name: str, key: str, type: str, sheet: int = 0) -> pd.DataFrame:
         path = f"s3://{self.access_key_id}:{self.secret_key_id}@{bucket_name}/{key}"
         if type == "csv":
             return pd.read_csv(smart_open(path))
-        elif type == "xls":
+        elif type == "xls" or type == 'xlsx':
             return pd.read_excel(smart_open(path), sheet)
 
         
-    def df_to_s3(self, dataframe: pd.DataFrame, bucket_name: str, key: str, ) -> None:
-        s3_bucket = self.create_bucket(bucket_name)
-        if s3_bucket:
-            s3_bucket.put_object(Bucket=bucket_name, Body=dataframe.to_csv(None).encode(), Key=key)
+    def df_to_s3(self, dataframe: pd.DataFrame, bucket_name: str, key: str) -> None:
+        client = boto3.client('s3', 
+                           aws_access_key_id=self.access_key_id,
+                           aws_secret_access_key=self.secret_key_id)
+        return client.put_object(
+                Bucket=bucket_name,
+                Body=dataframe.to_csv(None).encode(),
+                Key=key)
+
+
+
+
