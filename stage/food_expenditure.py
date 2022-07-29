@@ -1,9 +1,8 @@
 import sys
 sys.path.append("..")
-import pandas as pd
+
 import os
 from ingest.s3 import S3AWS
-from dotenv import load_dotenv
 
 class FoodExpenditure:
     new_dir = "food-expenditure-clean"
@@ -32,27 +31,38 @@ class FoodExpenditure:
             for k, end_pos in result_dict.items():
                 new_df = df.iloc[:, start_pos:end_pos]
                 new_df.insert(0, "year", year)
+                new_df.reset_index(drop=True, inplace=True)
                 
                 prefix = path.split("/")[1].split("_")[0]
                 filename = prefix + "-" + k.lower().replace(" ", "-") + ".csv"
                 key = os.path.join(self.new_dir, filename)
-                self.s3.df_to_s3(df, self.des_bucket, key) 
+                load_to_s3 = self.s3.df_to_s3(new_df, self.des_bucket, key) 
+                if load_to_s3:
+                    print(f"Successfully process {key} to S3")
                 start_pos = end_pos + 1
                 
     def process_monthly_sale(self) -> None:
         path = os.path.join(self.dirname, "monthly_sales.xlsx")
-        df = self.s3.load_df(path)
+        df = self.s3.load_df(self.src_bucket, path, "xlsx")
         
         df.columns = ["year", "month", "nominal_fah", "nominal_fafh", "total_nominal_sales","constant_fah", "constant_fafh", "total_constant_sales"]
         df = df[3:307]
         nominal_df = df.drop(["constant_fah", "constant_fafh", "total_constant_sales"], axis=1)
         constant_df = df.drop(["nominal_fah", "nominal_fafh", "total_nominal_sales"], axis=1)
         
+        nominal_df.reset_index(drop=True, inplace=True)
+        constant_df.reset_index(drop=True, inplace=True)
+        
         norminal_key = os.path.join(self.new_dir, "nominal-monthly-sale.csv")
         constant_key = os.path.join(self.new_dir, "constant-monthly-sale.csv")
         
-        self.s3.df_to_s3(nominal_df, self.des_bucket, norminal_key) 
-        self.s3.df_to_s3(constant_df, self.des_bucket,constant_key ) 
+        load_to_s3 = self.s3.df_to_s3(nominal_df, self.des_bucket, norminal_key) 
+        if load_to_s3:
+            print(f"Successfully process {norminal_key} to S3")
+            
+        load_to_s3 = self.s3.df_to_s3(constant_df, self.des_bucket,constant_key ) 
+        if load_to_s3:
+            print(f"Successfully process {constant_key} to S3")
         
 # rm -rf food-expenditure-clean fast-food-clean price-index-clean nutrient-intake-estimates-clean loss-adjusted-food-availability-clean food-consumption-estimates-clean
 

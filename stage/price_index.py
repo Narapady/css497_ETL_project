@@ -1,17 +1,22 @@
-import pandas as pd
+import sys
+sys.path.append("..")
+
 import numpy as np
 import os
+from ingest.s3 import S3AWS
 
 class PriceIndex:
     new_dir = "price-index-clean"
-    os.mkdir(new_dir)
+    des_bucket = "s3-bucket-clean-usda" 
+    src_bucket = "s3-bucket-raw-usda" 
     
-    def __init__(self, dirname: str, pi_type: str):
+    def __init__(self, dirname: str, pi_type: str, s3: S3AWS):
         self.dirname = dirname 
         self.pi_type = pi_type 
+        self.s3 = s3
     
     def get_2022_pct_change(self,path: str) -> list[float]:
-        df = pd.read_excel(path)
+        df = self.s3.load_df(self.src_bucket, path, "xlsx") 
         if self.pi_type == "consumer":
             col = "Forecast range2 2022"
         elif self.pi_type == "producer":
@@ -32,25 +37,26 @@ class PriceIndex:
         return result  
 
     def get_path(self) -> str:
-        if self.dirname == "Consumer Price Index":
+        if self.dirname == "consumer-price-index":
             filename = "historicalcpi.xlsx"
-        elif self.dirname == "Producer Price Index":
+        elif self.dirname == "producer-price-index":
             filename = "historicalppi.xlsx" 
             
         return os.path.join(self.dirname,filename)
 
     def process_data(self) -> None:
 
-        df = pd.read_excel(self.get_path())
+        path = self.get_path()
+        df = self.s3.load_df(self.src_bucket, path, "xlsx")
         df.columns = df.iloc[0]
         
         if self.pi_type == "consumer":
             df = df.iloc[1:27, :list(df.columns).index(2021.0) + 1].dropna(how="all")
-            pct_change_2022_path = "./Consumer Price Index/CPIforecast.xlsx"
+            pct_change_2022_path = os.path.join(self.dirname, "CPIforecast.xlsx")
             
         elif self.pi_type == "producer":
             df = df.iloc[1:26, :list(df.columns).index(2021.0) + 1].dropna(how="all")
-            pct_change_2022_path = "./Producer Price Index/PPIforecast.xlsx"
+            pct_change_2022_path = os.path.join(self.dirname, "PPIforecast.xlsx")
             
         cols = [str(year) for year in list(df.columns)]
         cols[1:] = [year[:-2] for year in cols[1:]]
@@ -59,15 +65,9 @@ class PriceIndex:
         df.insert(df.shape[1], "2022", self.get_2022_pct_change(pct_change_2022_path))
         df.reset_index(drop=True, inplace=True)
         
-        df.to_csv(f"{self.new_dir}/{self.pi_type}-price-index.csv", index=False)
-
-# if __name__ == "__main__":
-#         
-#     cpi_dir = "Consumer Price Index"
-#     ppi_dir = "Producer Price Index"
-#    
-#     cpi = PriceIndex(cpi_dir, "consumer")
-#     ppi = PriceIndex(ppi_dir, "producer")
-#
-#     cpi.process_data()
-#     ppi.process_data()
+        key = os.path.join(self.new_dir, f"{self.pi_type}-price-index.csv")
+        
+        load_to_s3  = self.s3.df_to_s3(df, self.des_bucket, key)
+        if load_to_s3:
+            print(f"Successfully process {key} to S3")
+        
