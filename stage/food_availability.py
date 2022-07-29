@@ -1,10 +1,11 @@
+import sys
+sys.path.append("..")
+
 import pandas as pd
 import os
 import numpy as np
+from ingest.s3 import S3AWS
 
-def get_paths(dirname: str) -> list[str]:
-    all_files = os.listdir(dirname)
-    return [f"{dirname}/{filename}" for filename in all_files]
 
 def has_numbers(input_str: str) -> bool:
     if input_str.startswith("19") or input_str.startswith("20"):
@@ -12,11 +13,13 @@ def has_numbers(input_str: str) -> bool:
     return False
 
 class FoodAvailablity:
+    des_bucket = "s3-bucket-clean-usda" 
+    src_bucket = "s3-bucket-raw-usda" 
 
-    def __init__(self, dirname: str):
+    def __init__(self, dirname: str, s3: S3AWS):
         self.dirname = dirname 
         self.new_dir = self.dirname.lower().replace(" ", "-") + "-clean"
-        os.mkdir(self.new_dir)
+        self.s3 = s3
 
     def process_data(self) -> None:
         self.process_calories()

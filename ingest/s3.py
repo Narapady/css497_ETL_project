@@ -1,11 +1,11 @@
 import boto3
+import botocore.exceptions
 import os
+import pandas as pd
 from dotenv import load_dotenv
 from smart_open import smart_open
 from typing import Optional
-import pandas as pd
-import numpy as np
-
+from io import BytesIO
 class S3AWS:
     """
     S3AWS represents aws object storage s3. It handles necessary features including
@@ -14,15 +14,21 @@ class S3AWS:
     def __init__(self, access_key_id: Optional[str], secret_key_id: Optional[str]):
         self.access_key_id = access_key_id
         self.secret_key_id = secret_key_id
+        self.client = boto3.client('s3', 
+                           aws_access_key_id=self.access_key_id,
+                           aws_secret_access_key=self.secret_key_id)
 
+    def s3_client(self):
+        return self.client
+    
     def create_bucket(self, bucket_name: str):
         """
         Create S3 bucket with bucket_name
         """
-        client = boto3.client('s3', 
-                           aws_access_key_id=self.access_key_id,
-                           aws_secret_access_key=self.secret_key_id)
-        return client.create_bucket(Bucket=bucket_name)
+        # client = boto3.client('s3', 
+        #                    aws_access_key_id=self.access_key_id,
+        #                    aws_secret_access_key=self.secret_key_id)
+        return self.client.create_bucket(Bucket=bucket_name)
 
 
     def load_df(self, bucket_name: str, key: str, type: str, sheet: int = 0) -> pd.DataFrame:
@@ -34,14 +40,36 @@ class S3AWS:
 
         
     def df_to_s3(self, dataframe: pd.DataFrame, bucket_name: str, key: str) -> None:
-        client = boto3.client('s3', 
-                           aws_access_key_id=self.access_key_id,
-                           aws_secret_access_key=self.secret_key_id)
-        return client.put_object(
+        # client = boto3.client('s3', 
+        #                    aws_access_key_id=self.access_key_id,
+        #                    aws_secret_access_key=self.secret_key_id)
+        return self.client.put_object(
                 Bucket=bucket_name,
                 Body=dataframe.to_csv(None).encode(),
                 Key=key)
 
+    def list_files(self, bucket_name: str, dirname: str) -> list[str]:
+        response =self.client.list_objects_v2(Bucket=bucket_name, Prefix=dirname)
+        files = response.get("Contents")
+    
+        return [file['Key'].split("/")[1] for file in files]
 
+    def get_sheetnames(self, bucket_name: str, key: str) -> list[str]:
+        s3_file = BytesIO()
+        try:
+            self.client.download_fileobj(bucket_name, key, s3_file)
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                print("The object does not exist.")
 
+        return pd.ExcelFile(s3_file).sheet_names
 
+if __name__ == '__main__':
+    load_dotenv()
+    s3 = S3AWS(os.getenv("ACCESS_KEY_ID"),os.getenv("SECRET_ACCESS_KEY"))
+
+    # files = s3.list_files("s3-bucket-raw-usda", "loss-adjusted-food-availability/")
+    # print(files) 
+    sheetnames = s3.get_sheetnames("s3-bucket-raw-usda", "loss-adjusted-food-availability/meat.xls")
+    print(sheetnames)
+    
